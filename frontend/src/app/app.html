@@ -1,0 +1,37 @@
+<div class="app-shell">
+  <header class="app-header">
+    <div class="app-brand">
+      <span class="app-title">Book Exchange</span>
+      <span class="app-subtitle">Troque e organize seus livros</span>
+    </div>
+
+    <nav class="app-nav">
+      <a routerLink="/my-shelf" routerLinkActive="active">
+        Minha estante
+      </a>
+      <a *ngIf="currentUser()" routerLink="/my-interests" routerLinkActive="active">
+        Meus interesses
+      </a>
+      <a routerLink="/books" routerLinkActive="active">
+        Livros
+      </a>
+      <a *ngIf="!isLoggedIn()" routerLink="/onboarding" routerLinkActive="active">
+        Entrar
+      </a>
+    </nav>
+
+    <div class="app-user" *ngIf="currentUser() as user">
+      <span class="app-user-name">
+        {{ user.nome }} <span class="app-user-city">({{ user.cidade }})</span>
+      </span>
+      <button type="button" class="app-button-secondary" (click)="logout()">
+        Sair
+      </button>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <router-outlet />
+  </main>
+</div>
+
