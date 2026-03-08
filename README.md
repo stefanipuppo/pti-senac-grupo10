@@ -2,6 +2,7 @@
 
 Aplicação focada em **organização de biblioteca pessoal** e **troca de livros entre usuários**, com uma experiência simples, segura e intuitiva. O objetivo é ampliar o acesso à leitura, incentivar a reutilização (sustentabilidade) e fortalecer a comunidade de leitores.
 
+
 ---
 
 ## Visão do Produto
