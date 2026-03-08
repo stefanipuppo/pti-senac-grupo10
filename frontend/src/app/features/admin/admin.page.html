@@ -1,0 +1,46 @@
+<section class="page">
+  <header class="page-header">
+    <h1>Admin (apoio)</h1>
+    <p>Visão simples de usuários, gêneros e livros para testes.</p>
+  </header>
+
+  <section class="card">
+    <h2>Gêneros</h2>
+
+    <form class="genre-form" (ngSubmit)="addGenre()">
+      <input
+        type="text"
+        [(ngModel)]="newGenreName"
+        name="genreName"
+        placeholder="Novo gênero"
+      />
+      <button type="submit" class="button-primary">Adicionar</button>
+    </form>
+
+    <ul class="list">
+      <li *ngFor="let genre of genres()">
+        {{ genre.id }} — {{ genre.nomeGenero }}
+      </li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Usuários</h2>
+    <ul class="list">
+      <li *ngFor="let user of users()">
+        {{ user.id }} — {{ user.nome }} ({{ user.email }}, {{ user.cidade }})
+      </li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Livros</h2>
+    <ul class="list">
+      <li *ngFor="let book of books()">
+        {{ book.id }} — {{ book.titulo }} ({{ book.autor }}) •
+        {{ book.genero?.nomeGenero || '—' }}
+      </li>
+    </ul>
+  </section>
+</section>
+
