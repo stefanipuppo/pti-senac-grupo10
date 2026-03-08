@@ -1,0 +1,105 @@
+<!-- Alerts (Fixed) -->
+<div class="alerts-container">
+  <div class="alert alert-error" *ngIf="errorMessage() as error">
+    <span>❌ {{ error }}</span>
+    <button type="button" (click)="errorMessage.set(null)" class="alert-close">&times;</button>
+  </div>
+  <div class="alert alert-success" *ngIf="successMessage() as success" role="status">
+    <span>{{ success }}</span>
+    <button type="button" (click)="successMessage.set(null)" class="alert-close">&times;</button>
+  </div>
+</div>
+
+<section class="interests-container">
+  <div class="interests-header">
+    <h1>Meus Interesses</h1>
+    <p class="interests-description">Livros que você tem interesse e seus respectivos donos</p>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading()">
+    ⏳ Carregando interesses...
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading() && interests().length === 0">
+    🔍 Você ainda não tem interesses registrados. Explore livros e marque os que você gostaria de ter!
+  </div>
+
+  <!-- Interests List -->
+  <div class="interests-list" *ngIf="!isLoading() && interests().length > 0">
+    <div class="interest-card" *ngFor="let interest of interests()">
+      <div class="card-top">
+        <div class="book-info">
+          <h3 class="book-title">{{ interest.livro.titulo }}</h3>
+          <p class="book-author">por {{ interest.livro.autor }}</p>
+        </div>
+        <div class="interest-status">
+          <span class="status-badge" [class.status-pending]="interest.status === 'pendente'">
+            {{ interest.status === 'pendente' ? '⏳ Pendente' : interest.status }}
+          </span>
+          <p class="book-genre" *ngIf="interest.livro.genero">
+            {{ interest.livro.genero.nomeGenero }}
+          </p>
+        </div>
+      </div>
+
+      <div class="owner-info">
+        <h4 class="owner-label">Dono do livro</h4>
+        <div class="owner-card">
+          <div class="owner-top">
+            <p class="owner-name">{{ getDisplayName(interest.dono) }}</p>
+            <button
+              type="button"
+              class="button-message"
+              (click)="showNotImplemented()"
+              title="Enviar mensagem de interesse">
+              💬
+            </button>
+          </div>
+          <p class="owner-city" *ngIf="interest.dono?.cidade">
+            📍 {{ interest.dono.cidade }}
+          </p>
+        </div>
+      </div>
+
+      <div class="shelf-info">
+        <h4 class="shelf-label">Disponibilidade</h4>
+        <div class="availability-badges">
+          <span class="availability-badge" [class.colecao]="interest.shelf.disponibilidade === 'colecao'">
+            {{ interest.shelf.disponibilidade === 'colecao' ? '📚 Coleção' : '🔄 Para Troca' }}
+          </span>
+          <span class="conservation-badge">
+            Estado: {{ interest.shelf.estadoConservacao }}
+          </span>
+        </div>
+      </div>
+
+      <div class="interest-date">
+        Interesse desde {{ (interest.createdAt | date: 'dd/MM/yyyy') || 'data desconhecida' }}
+      </div>
+
+      <div class="card-actions">
+        <button type="button" class="button-remove-interest" (click)="showDeleteConfirm(interest)" [disabled]="isSaving()">
+          ✕ Remover interesse
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="deleteConfirm() as interest" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">Confirmar remoção</h3>
+      <p class="modal-message">
+        Tem certeza que deseja remover seu interesse em <strong>"{{ interest.livro.titulo }}"</strong>?
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="button-secondary" (click)="cancelDelete()" [disabled]="isSaving()">Cancelar</button>
+        <button type="button" class="button-danger" (click)="removeInterest(interest)" [disabled]="isSaving()">
+          {{ isSaving() ? 'Removendo...' : 'Remover' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

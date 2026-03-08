@@ -1,0 +1,69 @@
+<section class="page">
+  <header class="page-header">
+    <button type="button" class="button-back" (click)="router.navigate(['/books'])">← Voltar</button>
+    <h1 *ngIf="user() as profile">Perfil de {{ profile.nome }}</h1>
+    <h1 *ngIf="!user() && isLoading()">Carregando perfil...</h1>
+    <h1 *ngIf="!user() && !isLoading()">Perfil não encontrado</h1>
+  </header>
+
+  <p *ngIf="isLoading()" class="loading-message">Carregando informações do usuário...</p>
+
+  <p class="error" *ngIf="errorMessage() as error">
+    {{ error }}
+  </p>
+
+  <section *ngIf="user() && !isLoading()" class="profile-section">
+    <div class="profile-card">
+      <div class="profile-avatar">👤</div>
+      <div class="profile-info">
+        <h2 class="profile-name">{{ user()?.nome }}</h2>
+        <p class="profile-location" *ngIf="user()?.cidade">📍 {{ user()?.cidade }}</p>
+        <p class="profile-description" *ngIf="isCurrentUser()">Este é seu perfil público</p>
+      </div>
+    </div>
+
+    <div class="profile-actions" *ngIf="isCurrentUser()">
+      <button type="button" class="button-primary" (click)="navigateToMyShelf()">
+        ✏️ Gerenciar minha estante
+      </button>
+    </div>
+  </section>
+
+  <section *ngIf="user() && !isLoading()">
+    <h2 class="section-title">Livros disponíveis para troca ({{ userShelf().length }})</h2>
+
+    <div *ngIf="userShelf().length" class="books-grid">
+      <div class="book-card" *ngFor="let entry of userShelf()">
+        <div class="book-details">
+          <h3 class="book-title">{{ entry.livro.titulo }}</h3>
+          <p class="book-author">{{ entry.livro.autor }}</p>
+          <p class="book-genre" *ngIf="entry.livro.genero?.nomeGenero">
+            {{ entry.livro.genero?.nomeGenero }}
+          </p>
+          <p class="book-condition">
+            <span class="condition-label">Estado:</span> {{ entry.estadoConservacao }}
+          </p>
+        </div>
+
+        <div class="book-actions">
+          <button
+            type="button"
+            class="button-interest"
+            *ngIf="!isCurrentUser()"
+          >
+            ❤️ Tenho interesse
+          </button>
+          <p *ngIf="isCurrentUser()" class="owner-note">Seu livro</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="empty-state" *ngIf="!userShelf().length">
+      📚 {{ user()?.nome }} não tem livros disponíveis para troca no momento.
+    </p>
+  </section>
+
+  <p *ngIf="!isLoading() && !user()" class="not-found">
+    Desculpe, o usuário não foi encontrado.
+  </p>
+</section>
