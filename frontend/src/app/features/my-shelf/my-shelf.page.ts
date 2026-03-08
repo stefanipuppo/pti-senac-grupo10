@@ -265,6 +265,7 @@ export class MyShelfPageComponent implements OnInit {
   }
 
   removeEntry(entry: UserShelf): void {
+
     if (this.isSaving()) {
       return;
     }

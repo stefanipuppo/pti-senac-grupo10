@@ -97,3 +97,15 @@
   width: 100%;
   margin: 0 auto;
 }
+
+.app-nav a:focus, 
+.app-button-secondary:focus {
+  outline: 2px solid #111827 !important;
+  outline-offset: 2px;
+}
+
+.app-nav a.active {
+  background-color: #111827;
+  color: #ffffff;
+  font-weight: 600;
+}
