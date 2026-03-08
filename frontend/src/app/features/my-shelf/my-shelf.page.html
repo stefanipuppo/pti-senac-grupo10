@@ -1,0 +1,321 @@
+<!-- Alert Container (Fixed) -->
+<div class="alerts-container">
+  <!-- Error Message -->
+  <div class="alert alert-error" *ngIf="errorMessage() as error">
+    <span>❌ {{ error }}</span>
+    <button type="button" (click)="errorMessage.set(null)" class="alert-close">&times;</button>
+  </div>
+
+  <!-- Success Message -->
+  <div class="alert alert-success" *ngIf="successMessage() as success" role="status">
+    <span>{{ success }}</span>
+    <div class="alert-actions">
+      <button
+        *ngIf="lastDeletedEntry()"
+        type="button"
+        class="alert-undo-btn"
+        (click)="undoRemove()"
+        [disabled]="isSaving()"
+      >
+        <span *ngIf="undoCountdown() > 0" class="countdown">{{ undoCountdown() }}</span>
+        <span>↶ Desfazer</span>
+      </button>
+      <button type="button" (click)="successMessage.set(null)" class="alert-close">&times;</button>
+    </div>
+  </div>
+</div>
+
+<section class="page">
+  <header class="page-header">
+    <h1>Minha Estante</h1>
+    <p>Gerencie sua coleção de livros e marque os que estão disponíveis para troca.</p>
+  </header>
+
+  <!-- Loading State -->
+  <p *ngIf="isLoading()" class="loading-message">📚 Carregando sua estante...</p>
+
+  <!-- Summary Stats -->
+  <div class="summary-grid" *ngIf="!isLoading() && (totalBooks() > 0 || !isFormExpanded())">
+    <div class="summary-card">
+      <div class="summary-icon">📚</div>
+      <div class="summary-content">
+        <p class="summary-label">Total de Livros</p>
+        <p class="summary-value">{{ totalBooks() }}</p>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon">↔️</div>
+      <div class="summary-content">
+        <p class="summary-label">Para Troca</p>
+        <p class="summary-value">{{ booksForTrade() }}</p>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon">🎁</div>
+      <div class="summary-content">
+        <p class="summary-label">Coleção</p>
+        <p class="summary-value">{{ booksInCollection() }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Book Form (Collapsible) -->
+  <section class="card add-card" [class.expanded]="isFormExpanded()">
+    <div class="form-header" (click)="toggleFormExpanded()">
+      <h2>Adicionar um novo livro</h2>
+      <button type="button" class="toggle-form-btn" [attr.aria-expanded]="isFormExpanded()">
+        {{ isFormExpanded() ? '▼' : '▶' }}
+      </button>
+    </div>
+
+    <form class="form" (ngSubmit)="addToShelf()" *ngIf="isFormExpanded()">
+      <div class="row">
+        <label class="field" [class.required]="true">
+          <span>Título *</span>
+          <input
+            type="text"
+            [(ngModel)]="addTitulo"
+            name="titulo"
+            placeholder="Ex: O Cortiço"
+            required
+          />
+        </label>
+
+        <label class="field" [class.required]="true">
+          <span>Autor *</span>
+          <input
+            type="text"
+            [(ngModel)]="addAutor"
+            name="autor"
+            placeholder="Ex: Aluísio Azevedo"
+            required
+          />
+        </label>
+      </div>
+
+      <div class="row">
+        <label class="field" [class.required]="true">
+          <span>Gênero *</span>
+          <select
+            [(ngModel)]="addGenreId"
+            name="genero"
+            required
+          >
+            <option [ngValue]="null" disabled>Selecione um gênero</option>
+            <option *ngFor="let genre of genres()" [ngValue]="genre.id">
+              {{ genre.nomeGenero }}
+            </option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Disponibilidade</span>
+          <select [(ngModel)]="addDisponibilidade" name="disponibilidade">
+            <option value="colecao">📚 Coleção</option>
+            <option value="para_troca">↔️ Disponível para troca</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="field" [class.required]="true">
+        <span>Estado de conservação *</span>
+        <input
+          type="text"
+          [(ngModel)]="addEstadoConservacao"
+          name="estadoConservacao"
+          placeholder="Ex: Bom estado, com marcações, etc"
+          required
+        />
+      </label>
+
+      <div class="form-actions">
+        <button type="submit" class="button-primary" [disabled]="isSaving() || !isFormValid()">
+          {{ isSaving() ? '⏳ Salvando...' : '➕ Adicionar livro' }}
+        </button>
+        <button type="button" class="button-secondary" (click)="toggleFormExpanded()" [disabled]="isSaving()">
+          ✕ Cancelar
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Filters and Search -->
+  <section class="filters-section" *ngIf="!isLoading() && totalBooks() > 0">
+    <div class="filters-grid">
+      <div class="filter-item">
+        <label for="search" class="filter-label">🔍 Buscar</label>
+        <input
+          id="search"
+          type="text"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+          placeholder="Título ou autor..."
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-item">
+        <label for="disponibilidade-filter" class="filter-label">Disponibilidade</label>
+        <select
+          id="disponibilidade-filter"
+          [ngModel]="filterDisponibilidade()"
+          (ngModelChange)="onDisponibilidadeChange($event)"
+          class="filter-select"
+        >
+          <option value="todos">Todos</option>
+          <option value="colecao">📚 Coleção</option>
+          <option value="para_troca">↔️ Para troca</option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="genre-filter" class="filter-label">Gênero</label>
+        <select
+          id="genre-filter"
+          [ngModel]="filterGenreId()"
+          (ngModelChange)="onGenreChange($event)"
+          class="filter-select"
+        >
+          <option [ngValue]="null">Todos</option>
+          <option *ngFor="let genre of genres()" [ngValue]="genre.id">
+            {{ genre.nomeGenero }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="sort-filter" class="filter-label">Ordenar por</label>
+        <select
+          id="sort-filter"
+          [ngModel]="sortBy()"
+          (ngModelChange)="onSortChange($event)"
+          class="filter-select"
+        >
+          <option value="titulo">Título (A-Z)</option>
+          <option value="autor">Autor (A-Z)</option>
+          <option value="recente">Mais recente</option>
+        </select>
+      </div>
+
+      <button type="button" class="button-secondary" (click)="clearFilters()" *ngIf="searchTerm() || filterDisponibilidade() !== 'todos' || filterGenreId() !== null">
+        ✕ Limpar filtros
+      </button>
+    </div>
+  </section>
+
+  <!-- Books List -->
+  <section *ngIf="!isLoading() && filteredEntries().length">
+    <h2 class="section-title">
+      {{ searchTerm() || filterDisponibilidade() !== 'todos' || filterGenreId() ? 'Resultados' : 'Seus livros' }}
+      <span class="result-count">({{ filteredEntries().length }})</span>
+    </h2>
+
+    <div class="shelf-grid">
+      <div class="shelf-card" *ngFor="let entry of filteredEntries()">
+        <div class="shelf-card-header">
+          <div class="shelf-card-info">
+            <h3 class="shelf-title">{{ entry.livro.titulo }}</h3>
+            <p class="shelf-author">{{ entry.livro.autor }}</p>
+          </div>
+          <div class="shelf-card-top-right">
+            <p class="shelf-genre" *ngIf="entry.livro.genero?.nomeGenero">
+              {{ entry.livro.genero?.nomeGenero }}
+            </p>
+          </div>
+        </div>
+
+        <div class="shelf-card-controls">
+          <div class="control-group">
+            <label class="control-label">Disponibilidade</label>
+            <div class="toggle-buttons">
+              <button
+                type="button"
+                class="toggle-btn"
+                [class.active]="entry.disponibilidade === 'colecao'"
+                [class.saving]="savingEntryId() === entry.id"
+                (click)="setDisponibilidade(entry, 'colecao')"
+                [disabled]="isSaving() || savingEntryId() === entry.id"
+              >
+                <span *ngIf="savingEntryId() !== entry.id">📚 Coleção</span>
+                <span *ngIf="savingEntryId() === entry.id" class="spinner">⏳</span>
+              </button>
+              <button
+                type="button"
+                class="toggle-btn"
+                [class.active]="entry.disponibilidade === 'para_troca'"
+                [class.saving]="savingEntryId() === entry.id"
+                (click)="setDisponibilidade(entry, 'para_troca')"
+                [disabled]="isSaving() || savingEntryId() === entry.id"
+              >
+                <span *ngIf="savingEntryId() !== entry.id">↔️ Para troca</span>
+                <span *ngIf="savingEntryId() === entry.id" class="spinner">⏳</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" [for]="'conservation-' + entry.id">
+              Estado de conservação
+              <span class="edit-hint" *ngIf="editingEntryId() === entry.id">✏️</span>
+            </label>
+            <div class="conservation-row">
+              <input
+                [id]="'conservation-' + entry.id"
+                type="text"
+                [(ngModel)]="entry.estadoConservacao"
+                (focus)="editingEntryId.set(entry.id)"
+                (blur)="saveEstadoConservacao(entry)"
+                class="conservation-input"
+                [class.editing]="editingEntryId() === entry.id"
+                [class.saving]="savingEntryId() === entry.id"
+                placeholder="Descreva o estado"
+                [disabled]="isSaving() || savingEntryId() === entry.id"
+              />
+              <button
+                type="button"
+                class="button-delete-icon"
+                (click)="showDeleteConfirm(entry)"
+                [disabled]="isSaving() || savingEntryId() === entry.id"
+                title="Remover livro"
+              >
+                <span *ngIf="savingEntryId() !== entry.id">✕</span>
+                <span *ngIf="savingEntryId() === entry.id" class="spinner">⏳</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Empty State -->
+  <p class="empty-state" *ngIf="!isLoading() && !entries().length">
+    📚 Sua estante está vazia. Use o formulário acima para adicionar seus primeiros livros!
+  </p>
+
+  <!-- No Results -->
+  <p class="empty-state" *ngIf="!isLoading() && entries().length > 0 && !filteredEntries().length">
+    🔍 Nenhum livro encontrado com os filtros aplicados.
+  </p>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="deleteConfirm() as entry" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">Confirmar remoção</h3>
+      <p class="modal-message">
+        Tem certeza que deseja remover <strong>"{{ entry.livro.titulo }}"</strong> de sua estante?
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="button-secondary" (click)="cancelDelete()" [disabled]="isSaving()">
+          Cancelar
+        </button>
+        <button type="button" class="button-danger" (click)="removeEntry(entry)" [disabled]="isSaving()">
+          {{ isSaving() ? 'Removendo...' : 'Remover' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
