@@ -1,0 +1,158 @@
+<section class="page">
+  <header class="page-header">
+    <h1>Explorar catálogo</h1>
+    <p>Pesquise por título, autor ou gênero para encontrar livros disponíveis para troca.</p>
+  </header>
+
+  <section class="card">
+    <form class="form" (ngSubmit)="search()">
+      <div class="row">
+        <label class="field">
+          <span>Título</span>
+          <input
+            type="text"
+            [(ngModel)]="titulo"
+            name="titulo"
+            placeholder="Ex: O Cortiço"
+            (ngModelChange)="onTextChange()"
+          />
+        </label>
+
+        <label class="field">
+          <span>Autor</span>
+          <input
+            type="text"
+            [(ngModel)]="autor"
+            name="autor"
+            placeholder="Ex: Aluísio Azevedo"
+            (ngModelChange)="onTextChange()"
+          />
+        </label>
+
+        <label class="field">
+          <span>Gênero</span>
+          <select
+            [(ngModel)]="genreId"
+            name="genreId"
+            (ngModelChange)="onGenreChange()"
+          >
+            <option [ngValue]="null">Qualquer</option>
+            <option
+              *ngFor="let genre of genres()"
+              [ngValue]="genre.id"
+            >
+              {{ genre.nomeGenero }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        class="button-primary"
+      >
+        {{ isLoading() ? 'Buscando...' : 'Buscar' }}
+      </button>
+    </form>
+  </section>
+
+  <p class="error" *ngIf="errorMessage() as error">
+    {{ error }}
+  </p>
+
+  <p class="success" *ngIf="successMessage() as success">
+    {{ success }}
+  </p>
+
+  <section *ngIf="results().length">
+    <h2 class="section-title">Resultados ({{ pageInfo()?.totalElements || results().length }} livros encontrados)</h2>
+
+    <div class="sort-controls">
+      <label>Ordenar por:</label>
+      <select [(ngModel)]="sortBy" (change)="changeSortBy(sortBy)">
+        <option value="titulo">Título</option>
+        <option value="autor">Autor</option>
+        <option value="genero">Gênero</option>
+        <option value="relevancia">Relevância</option>
+      </select>
+    </div>
+
+    <div class="books-grid">
+      <div class="book-card" *ngFor="let book of results()">
+        <!-- Book Header -->
+        <div class="book-header">
+          <div class="book-info">
+            <h3 class="book-title">{{ book.titulo }}</h3>
+            <p class="book-author">{{ book.autor || 'Autor desconhecido' }}</p>
+            <p class="book-genre" *ngIf="book.genero">{{ book.genero }}</p>
+            <div class="book-stats">
+              <span class="availability-badge">{{ book.owners.length }} cópia(s) disponível(is)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Owners Section - Always Visible -->
+        <div class="owners-section" *ngIf="book.owners.length">
+          <h4 class="owners-title">Disponível com:</h4>
+          <div class="owners-list">
+            <div *ngFor="let owner of book.owners" class="owner-card" [class.owner-card-interested]="hasExpressedInterest(owner)">
+              <div class="owner-info">
+                <p class="owner-name">{{ owner.ownerName }}</p>
+                <div class="owner-details">
+                  <span class="owner-city">📍 {{ owner.cidade }}</span>
+                  <span class="owner-condition">{{ owner.estadoConservacao }}</span>
+                </div>
+              </div>
+              <div class="owner-actions">
+                <button
+                  *ngIf="!hasExpressedInterest(owner)"
+                  type="button"
+                  class="button-interest"
+                  (click)="expressInterest(book, owner)"
+                  [attr.aria-label]="'Expressar interesse em ' + book.titulo + ' de ' + owner.ownerName"
+                >
+                  ❤️ Tenho interesse
+                </button>
+                <button
+                  *ngIf="hasExpressedInterest(owner)"
+                  type="button"
+                  class="button-interest button-interest-registered"
+                  (click)="removeInterest(owner)"
+                  title="Clique para remover o interesse"
+                  aria-label="Remover interesse"
+                >
+                  ✓ Interesse registrado &nbsp;<span class="remove-hint">✕</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pagination-controls" *ngIf="pageInfo()">
+      <button
+        type="button"
+        class="button-secondary"
+        (click)="previousPage()"
+        [disabled]="currentPage() === 0"
+      >
+        ← Anterior
+      </button>
+      <span class="page-info">Página {{ currentPage() + 1 }} de {{ pageInfo()?.totalPages || 1 }}</span>
+      <button
+        type="button"
+        class="button-secondary"
+        (click)="nextPage()"
+        [disabled]="pageInfo()?.last"
+      >
+        Próxima →
+      </button>
+    </div>
+  </section>
+
+  <p class="empty-state" *ngIf="!isLoading() && !results().length">
+    📚 Nenhum resultado ainda. Preencha os filtros e clique em buscar para começar!
+  </p>
+</section>
+

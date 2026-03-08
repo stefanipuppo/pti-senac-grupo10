@@ -1,0 +1,29 @@
+<section class="page">
+  <header class="page-header">
+    <h1>Bem-vindo ao Book Exchange</h1>
+    <p>
+      Catalogue sua estante, marque livros para troca e encontre novas leituras com outros leitores.
+    </p>
+  </header>
+
+  <div class="page-grid">
+    <article class="card primary" *ngIf="!isLoggedIn">
+      <h2>Começar agora</h2>
+      <p>Crie ou selecione seu usuário para começar a montar sua estante.</p>
+      <a routerLink="/onboarding" class="button-primary">Entrar</a>
+    </article>
+
+    <article class="card">
+      <h3>Minha estante</h3>
+      <p>Veja os livros que você possui, marque como coleção ou disponíveis para troca.</p>
+      <a routerLink="/my-shelf" class="button-link">Ir para minha estante →</a>
+    </article>
+
+    <article class="card">
+      <h3>Buscar livros</h3>
+      <p>Pesquise por título, autor ou gênero para descobrir novas leituras.</p>
+      <a routerLink="/books" class="button-link">Buscar livros →</a>
+    </article>
+  </div>
+</section>
+

@@ -1,0 +1,72 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-header h1 {
+  font-size: 1.15rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.page-header p {
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.page-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.card {
+  background-color: transparent;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  padding: 0.875rem 1rem;
+}
+
+.card.primary {
+  border-color: #111827;
+  background: #111827;
+  color: #ffffff;
+}
+
+.card.primary p {
+  color: #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.button-primary {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.25rem;
+  background-color: #ffffff;
+  color: #111827;
+  font-size: 0.75rem;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.15s;
+}
+
+.button-primary:hover {
+  opacity: 0.85;
+}
+
+.button-link {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  text-decoration: none;
+  color: #6b7280;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.button-link:hover {
+  color: #111827;
+}
+
